@@ -115,28 +115,45 @@ class DrivingAssistant:
         frame = self.boundary.overlay_boundary(frame, closest_box_distance)
         frame = bounding_boxes.overlay_all_boxes(frame)
         
-
         return frame        
+
+class VideoSaver:
+    def __init__(self, height, width, fps):
+        self.height = height
+        self.width = width
+        self.fps = fps
+
+    @classmethod
+    def from_videocapture(cls, cap: cv2.VideoCapture):
+        ret, first_frame = cap.read()
+        if ret:
+            return cls(
+                height = first_frame.shape[0],
+                width = first_frame.shape[1],
+                fps = int(cap.get(cv2.CAP_PROP_FPS))
+            )
+        else:
+            print("Failed to read the video")
+            cap.release()
+
+    def save_to(self, filename: str) -> cv2.VideoWriter:
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')  # Codec for .mp4 files
+        return cv2.VideoWriter(f"{filename}.avi", fourcc, self.fps, (self.width,self.height), isColor=True)
 
 class VideoLoader:
     def __init__(self, cap: cv2.VideoCapture):
         self.cap = cap
-        self.height, self.width = self.get_frame_info()
+        self.video_saver = VideoSaver.from_videocapture(cap)
+        self.height, self.width = self.video_saver.height, self.video_saver.width
 
     @classmethod
     def from_path(cls, video_path: str):
         return cls(cv2.VideoCapture(video_path))
 
-    def get_frame_info(self):
-        ret, first_frame = self.cap.read()
-        if ret:
-            height, width, _ = first_frame.shape
-            return (height, width)
-        else:
-            print("Failed to read the video")
-            self.cap.release()
+    def run(self, process_fn: Callable[[np.ndarray], np.ndarray] = None, save_to: str = None):
+        if save_to:
+            saver = self.video_saver.save_to(save_to)
 
-    def run(self, process_fn: Callable[[np.ndarray], np.ndarray] = None):
         while self.cap.isOpened():
             ret, frame = self.cap.read()
 
@@ -149,12 +166,16 @@ class VideoLoader:
 
             frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
+            if save_to:
+                saver.write(frame)
+
             cv2.imshow('Driving Assistant Window', frame_bgr)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
-
+        if save_to:
+            saver.release()
         self.cap.release()
         cv2.destroyAllWindows()
 
