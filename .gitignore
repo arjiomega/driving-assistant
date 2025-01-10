@@ -3,6 +3,14 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Ignore all .mp4 and .avi files
+*.mp4
+*.avi
+
+# Allow .mp4 and .avi files inside the media/ directory
+!media/*.mp4
+!media/*.avi
+
 # C extensions
 *.so
 

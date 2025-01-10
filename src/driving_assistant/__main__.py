@@ -21,7 +21,7 @@ def main():
 
     driving_assistant = DrivingAssistant(inference, boundary)
 
-    video_loader.run(driving_assistant, "output.mp4")
+    video_loader.run(driving_assistant, "output")
 
 if __name__ == "__main__":
     main()
