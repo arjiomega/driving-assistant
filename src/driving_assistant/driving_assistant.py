@@ -167,7 +167,7 @@ class VideoLoader:
             frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
             if save_to:
-                saver.write(frame)
+                saver.write(frame_bgr)
 
             cv2.imshow('Driving Assistant Window', frame_bgr)
 
